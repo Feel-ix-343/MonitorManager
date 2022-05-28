@@ -1,0 +1,39 @@
+{
+  "reload-time": 3,
+  "workspaces": [
+    {
+      "name": "Integrated Dads",
+      "primary-monitor": "auto",
+      "secondary-monitors": [
+        {
+          "position": "leftOf",
+          "monitor-name": "DP-4"
+        }
+      ]
+    },
+    {
+      "name": "Nvidia Dads",
+      "primary-monitor": "auto",
+      "secondary-monitors": [
+        {
+          "position": "leftOf",
+          "monitor-name": "DP-1-4"
+        }
+      ]
+    },
+    {
+      "name": "Integrated Moms",
+      "primary-monitor": "auto",
+      "secondary-monitors": [
+        {
+          "position": "leftOf",
+          "monitor-name": "DP-3"
+        }
+      ]
+    },
+    {
+      "name": "Mobile",
+      "primary-monitor": "auto"
+    }
+  ]
+}
