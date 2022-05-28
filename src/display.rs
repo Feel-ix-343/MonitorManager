@@ -17,7 +17,7 @@ pub fn get_monitor_names() -> Result<Vec<String>, std::io::Error> {
 
 // xrandr command: xrandr --output $MAINDISPLAY --auto --primary --output $SECONDARYDISPLAY --auto --left-of $MAINDISPLAY
 
-pub fn update_outputs(primary_monitor: &String, secondary_monitors: &Option<HashMap<MonitorPositions, String>>) {
+pub fn update_outputs(primary_monitor: &String, secondary_monitors: &Option<&HashMap<MonitorPositions, String>>) {
 
     if secondary_monitors.is_none() {
         // println!("Xrandr output: {:?}", Command::new("xrandr")
@@ -38,9 +38,8 @@ pub fn update_outputs(primary_monitor: &String, secondary_monitors: &Option<Hash
     }
 
     let secondary_monitor_commands: Vec<String> = secondary_monitors
-        .as_ref()
         .unwrap()
-        .into_iter()
+        .iter()
         .flat_map(|(position, name)| {
             let xrandr_position = match position {
                 LeftOf => String::from("--left-of"),

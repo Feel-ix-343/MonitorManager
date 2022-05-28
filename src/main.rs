@@ -33,7 +33,7 @@ fn main() {
                 println!("{:#?}", workspace);
                 // Only update the display if monitors have changed
                 if monitors != previous_monitors {
-                    display::update_outputs(&workspace.primary_monitor, &workspace.secondary_monitors);
+                    display::update_outputs(&workspace.primary_monitor, &workspace.secondary_monitors.as_ref());
                     for command in &config.switch_scripts {
                         match execute_monitor_switch_scripts(command) {
                             Ok(()) => (),
