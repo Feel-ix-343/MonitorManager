@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::ops::Deref;
 use serde_json::from_reader;
 use std::fs::File;
 use std::env;
@@ -9,7 +8,7 @@ use crate::display;
 
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct WorkSpace {
     pub name: String,
     pub primary_monitor: String,
@@ -18,20 +17,30 @@ pub struct WorkSpace {
 
 impl WorkSpace {
     /// Gets a configured workspace from the list of monitors
-    pub fn get(config: &Config, primary_monitor: &String, secondary_monitors: &Vec<String>) -> Option<&WorkSpace> {
+    /// Expects that workspaces are listed in the order or specificity. Ex. Workspace with one the
+    /// monitor should be listed last
+    pub fn get<'config>(config: &'config Config, primary_monitor: &String, secondary_monitors: &Vec<String>) -> Option<&'config WorkSpace> {
         let workspaces = &config.workspaces;
         for workspace in workspaces {
             if &workspace.primary_monitor == primary_monitor {
-                if let Some(ref w) = workspace.secondary_monitors {
-                    let workspace_secondary_monitors: &Vec<String> = w
-                        .into_values()
-                        .collect();
-                    if workspace_secondary_monitors == secondary_monitors { return Some(workspace) }
+                if let Some(monitors) = workspace.get_secondary_monitor_list() {
+                    // All monitors are contained 
+                    if monitors.iter().fold(true, |a, m| a && secondary_monitors.contains(m)) { return Some(workspace) }
                 }
                 else { return Some(workspace); }
             }
         }
         return None;
+    }
+
+    pub fn get_secondary_monitor_list(&self) -> Option<Vec<&String>> {
+        self.secondary_monitors
+            .as_ref()
+            .map(|map| {
+            Some(map.iter()
+                .flat_map(|(_, name)| vec![name])
+                .collect::<Vec<&String>>())
+        }).unwrap_or(None)
     }
     /// Tries to create a workspace object from a json Value. Will panic. Used by the
     /// config::Config::get. Will also replace an auto value for primary-monitor with the current active monitor
@@ -53,7 +62,7 @@ impl WorkSpace {
                 .map(|value| value
                     .as_array()
                     .expect("secondary-monitors must be a json aray")
-                    .into_iter()
+                    .iter()
                     .flat_map(|secondary_monitor_value| vec![
                         (
                             MonitorPositions::get(secondary_monitor_value.get("position")
@@ -74,7 +83,7 @@ impl WorkSpace {
 }
 
 
-#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Hash, Eq, PartialEq)]
 pub enum MonitorPositions {
     RightOf,
     LeftOf
@@ -117,14 +126,14 @@ impl Config {
                 .expect("Config file needs workspaces")
                 .as_array()
                 .expect("workspaces needs to be a json array")
-                .into_iter()
+                .iter()
                 .map(|value| WorkSpace::create(value))
                 .collect(),
             switch_scripts: config.get("monitor-switch-scripts")
                 .map(|value| value
                      .as_array()
                      .expect("monitor-switch-scripts must be a json array")
-                     .into_iter()
+                     .iter()
                      .map(|array_val| String::from(array_val
                           .as_str()
                           .expect("monitor-switch-scripts array must contain json string value"))
